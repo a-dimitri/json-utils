@@ -7,10 +7,19 @@ Built with SwiftUI. The UI is a port of the design in `JSON Utilities.dc.html`.
 ## Requirements
 
 - macOS 13+
-- Swift 5.9+ (Command Line Tools are sufficient for development)
+- A **Swift 6.x** toolchain (the package is `swift-tools-version:6.0` and builds
+  in Swift 6 language mode with full strict concurrency).
 
-Full Xcode is **not** required to build and run locally. It *is* required later
-to produce a signed, notarized `.app` for distribution.
+Full Xcode is **not** required. If you only have the older Command Line Tools,
+install a Swift 6 toolchain from [swift.org](https://www.swift.org/install/macos/)
+and put it on your `PATH` (under Command Line Tools, `TOOLCHAINS`/`xcrun` selection
+is ignored, so prepend the toolchain's `usr/bin` directly):
+
+```sh
+export PATH="$HOME/Library/Developer/Toolchains/swift-6.1-RELEASE.xctoolchain/usr/bin:$PATH"
+```
+
+Xcode *is* required later to produce a signed, notarized `.app` for distribution.
 
 ## Layout
 
@@ -26,7 +35,7 @@ Sources/
     JsonUtilitiesApp.swift  Entry point + menu commands
     AppModel.swift          Observable state
     Theme.swift             The 4 palettes (Midnight/Graphite/Frost/Paper)
-    Highlight.swift         Tokens -> coloured AttributedString
+    CodeTextView.swift      NSTextView bridge: line-number gutter + live highlighting
     RootView.swift          Toolbar, panes, status bar
     DiffView.swift          Diff sheet
     Samples.swift           Seed content
@@ -46,6 +55,6 @@ swift run JSONKitTests   # run the logic tests
 - We use a **hand-written JSON model** instead of `JSONSerialization`/`Codable`
   because those lose object key order and rewrite number formatting — unacceptable
   for a formatter. `JSONValue` preserves key order and exact number lexemes.
-- The editable input pane currently uses SwiftUI's `TextEditor`. A line-numbered
-  gutter and live syntax highlighting for the input will come via an `NSTextView`
-  bridge (SwiftUI's `TextEditor` can't do either).
+- The editors are `NSTextView` wrapped in `NSViewRepresentable` (`CodeTextView`),
+  giving a line-number gutter (via `NSRulerView`) and live JSON syntax
+  highlighting — neither of which SwiftUI's `TextEditor` can do.

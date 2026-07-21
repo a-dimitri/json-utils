@@ -5,12 +5,14 @@ import JSONKit
 /// A code editor backed by `NSTextView` — the native piece SwiftUI's `TextEditor`
 /// can't provide: a line-number gutter (via `NSRulerView`) and live JSON syntax
 /// highlighting. Used editable for the input panes and read-only for output.
+@MainActor
 struct CodeTextView: NSViewRepresentable {
     @Binding var text: String
     let themeID: ThemeID
     var isEditable: Bool
 
-    static let editorFont: NSFont =
+    // NSFont is immutable and safe to share; the SDK just doesn't mark it Sendable.
+    nonisolated(unsafe) static let editorFont: NSFont =
         NSFont(name: "JetBrains Mono", size: 12.5)
         ?? .monospacedSystemFont(ofSize: 12.5, weight: .regular)
 
@@ -140,6 +142,7 @@ struct CodeTextView: NSViewRepresentable {
         }
     }
 
+    @MainActor
     final class Coordinator: NSObject, NSTextViewDelegate {
         var parent: CodeTextView
         weak var textView: NSTextView?
@@ -160,6 +163,7 @@ struct CodeTextView: NSViewRepresentable {
 
 /// Draws line numbers in the scroll view's vertical ruler, tracking the text
 /// view's layout so numbers stay aligned through scrolling and wrapping.
+@MainActor
 final class LineNumberRulerView: NSRulerView {
     var theme: Theme
     private let numberFont: NSFont

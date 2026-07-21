@@ -1,3 +1,4 @@
+import Foundation
 import JSONKit
 
 // A minimal assertion-based test runner. XCTest is unavailable under the
@@ -7,11 +8,13 @@ import JSONKit
 var failures = 0
 var passed = 0
 
+@MainActor
 func check(_ name: String, _ condition: Bool) {
     if condition { passed += 1 }
     else { failures += 1; print("FAIL - \(name)") }
 }
 
+@MainActor
 func checkEqual(_ name: String, _ got: String, _ want: String) {
     if got == want { passed += 1 }
     else {
@@ -22,7 +25,7 @@ func checkEqual(_ name: String, _ got: String, _ want: String) {
     }
 }
 
-func run(_ op: Operation, _ input: String) -> String {
+func run(_ op: JSONKit.Operation, _ input: String) -> String {
     (try? JSONTools.run(op, input: input)) ?? "<error>"
 }
 

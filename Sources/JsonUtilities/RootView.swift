@@ -1,6 +1,7 @@
 import SwiftUI
 import JSONKit
 
+@MainActor
 struct RootView: View {
     @EnvironmentObject var model: AppModel
 

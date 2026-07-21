@@ -2,6 +2,7 @@ import SwiftUI
 import JSONKit
 
 /// Side-by-side line diff shown in a sheet, mirroring the design's diff modal.
+@MainActor
 struct DiffView: View {
     let rows: [DiffLine]
     let theme: Theme

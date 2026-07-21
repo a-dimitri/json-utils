@@ -2,6 +2,7 @@ import SwiftUI
 import JSONKit
 
 @main
+@MainActor
 struct JsonUtilitiesApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @StateObject private var model = AppModel()
@@ -32,6 +33,7 @@ struct JsonUtilitiesApp: App {
 /// Under a bare `swift run` (no .app bundle), the process launches as a
 /// background agent by default. Promote it to a regular foreground app so the
 /// window appears and takes focus.
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
