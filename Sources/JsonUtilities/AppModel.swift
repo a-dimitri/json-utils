@@ -5,7 +5,7 @@ import JSONKit
 /// `diff` is run on demand and shown in a sheet.
 @MainActor
 final class AppModel: ObservableObject {
-    @Published var op: JSONKit.Operation = .format { didSet { recompute() } }
+    @Published var op: JSONKit.Operation = .format { didSet { showDiff = false; recompute() } }
     @Published var themeID: ThemeID = .midnight
 
     @Published var input: String = Samples.a { didSet { recompute() } }

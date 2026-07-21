@@ -10,41 +10,18 @@ struct RootView: View {
         VStack(spacing: 0) {
             toolbar(t)
             Divider().overlay(t.border)
-            panes(t)
+            // The diff replaces the editors entirely (rather than floating over
+            // them) so no NSTextView sits under the cursor to fight over it.
+            if model.showDiff {
+                DiffView(rows: model.diffLines, theme: t) { model.showDiff = false }
+            } else {
+                panes(t)
+            }
             Divider().overlay(t.border)
             statusBar(t)
         }
         .background(t.bg)
         .foregroundStyle(t.text)
-        .overlay {
-            if model.showDiff {
-                diffOverlay(t)
-            }
-        }
-    }
-
-    // MARK: - Diff overlay
-
-    /// A custom modal overlay (instead of `.sheet`) so clicking the dimmed
-    /// backdrop dismisses it, matching the design. Escape and the ✕ also close.
-    private func diffOverlay(_ t: Theme) -> some View {
-        ZStack {
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
-
-            // Handles both click-to-dismiss and forcing the arrow cursor over
-            // the dimmed area (SwiftUI can't reset the pointer pre-macOS 15).
-            ArrowCursorBackdrop { model.showDiff = false }
-                .ignoresSafeArea()
-
-            DiffView(rows: model.diffLines, theme: t) { model.showDiff = false }
-                .shadow(color: .black.opacity(0.5), radius: 30, y: 12)
-
-            // Reliable Escape-to-close (an overlay doesn't get the sheet's default).
-            Button("", action: { model.showDiff = false })
-                .keyboardShortcut(.cancelAction)
-                .hidden()
-        }
     }
 
     // MARK: - Toolbar (operation selector + Run + theme)

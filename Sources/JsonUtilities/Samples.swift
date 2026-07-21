@@ -1,6 +1,6 @@
 import Foundation
 
-/// Seed content so the app is useful the moment it opens, matching the design.
+/// Seed content so the app is useful the moment it opens.
 enum Samples {
     static let a = """
     {

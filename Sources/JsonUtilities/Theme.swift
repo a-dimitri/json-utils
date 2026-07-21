@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The four palettes from the design.
+/// The four built-in colour themes.
 public enum ThemeID: String, CaseIterable, Identifiable {
     case midnight
     case graphite
@@ -19,7 +19,7 @@ public enum ThemeID: String, CaseIterable, Identifiable {
     }
 }
 
-/// A resolved colour set for one theme. Field names match the design tokens.
+/// A resolved colour set for one theme.
 public struct Theme {
     public let bg: Color
     public let chrome: Color

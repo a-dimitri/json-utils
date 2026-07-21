@@ -1,8 +1,7 @@
 import SwiftUI
-import AppKit
 import JSONKit
 
-/// Side-by-side line diff shown as a modal overlay, mirroring the design's diff modal.
+/// Side-by-side line diff shown as a full panel in place of the editors.
 @MainActor
 struct DiffView: View {
     let rows: [DiffLine]
@@ -27,14 +26,14 @@ struct DiffView: View {
             Divider().overlay(theme.border)
             footer
         }
-        .frame(width: 820, height: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(theme.pane)
         .foregroundStyle(theme.text)
-        // The editors behind leave the pointer as an I-beam; keep resetting it to
-        // the arrow as the mouse moves over the modal (SwiftUI has no cursor modifier
-        // before macOS 15).
-        .onContinuousHover { phase in
-            if case .active = phase { NSCursor.arrow.set() }
+        .overlay {
+            // Escape closes the diff.
+            Button("", action: onClose)
+                .keyboardShortcut(.cancelAction)
+                .hidden()
         }
     }
 

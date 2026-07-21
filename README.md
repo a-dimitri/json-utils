@@ -1,60 +1,45 @@
 # JSON Utilities
 
-A lightweight, native macOS app for everyday JSON chores: format, minify,
-marshal/unmarshal, deep-unmarshal nested stringified JSON, and diff two payloads.
-Built with SwiftUI. The UI is a port of the design in `JSON Utilities.dc.html`.
+A lightweight, native macOS app for everyday JSON chores.
 
-## Requirements
+- **Format** / **Minify** — pretty-print or compact JSON, preserving key order
+- **Marshal** / **Unmarshal** — encode JSON as a string / decode JSON-in-a-string
+- **Deep Unmarshal** — recursively expand stringified JSON nested inside values
+- **Diff** — line-by-line comparison of two payloads
+- Four colour themes, line-numbered editors, live syntax highlighting, and a
+  validity indicator.
 
-- macOS 13+
-- A **Swift 6.x** toolchain (the package is `swift-tools-version:6.0` and builds
-  in Swift 6 language mode with full strict concurrency).
+## Install
 
-Full Xcode is **not** required. If you only have the older Command Line Tools,
-install a Swift 6 toolchain from [swift.org](https://www.swift.org/install/macos/)
-and put it on your `PATH` (under Command Line Tools, `TOOLCHAINS`/`xcrun` selection
-is ignored, so prepend the toolchain's `usr/bin` directly):
+1. Download **[`dist/JSON-Utilities-macos.zip`](dist/JSON-Utilities-macos.zip)** and unzip it.
+2. Move **JSON Utilities.app** to `/Applications`.
+3. The app is ad-hoc signed (not notarized), so on first launch macOS Gatekeeper
+   will warn about an unidentified developer. Either **right-click the app → Open**
+   once, or clear the quarantine flag:
+
+   ```sh
+   xattr -dr com.apple.quarantine "/Applications/JSON Utilities.app"
+   ```
+
+Requires macOS 13 or later (Apple Silicon).
+
+## Build from source
+
+Requires a **Swift 6.x** toolchain on your `PATH`.
 
 ```sh
-export PATH="$HOME/Library/Developer/Toolchains/swift-6.1-RELEASE.xctoolchain/usr/bin:$PATH"
+swift run JsonUtilities      # build & launch
+swift run JSONKitTests       # run the logic tests
+./scripts/build-app.sh       # produce dist/JSON Utilities.app (+ zip)
 ```
-
-Xcode *is* required later to produce a signed, notarized `.app` for distribution.
 
 ## Layout
 
 ```
 Sources/
-  JSONKit/          Pure logic, no SwiftUI — fast to compile, easy to test
-    JSONValue.swift   Order-preserving JSON model + serializer
-    JSONParser.swift  Recursive-descent parser (keeps key order & number lexemes)
-    Operation.swift   The 6 operations + JSONTools.run
-    Differ.swift      LCS line diff
-    Tokenizer.swift   Syntax-highlight tokenizer (tolerant of invalid input)
-  JsonUtilities/    SwiftUI app
-    JsonUtilitiesApp.swift  Entry point + menu commands
-    AppModel.swift          Observable state
-    Theme.swift             The 4 palettes (Midnight/Graphite/Frost/Paper)
-    CodeTextView.swift      NSTextView bridge: line-number gutter + live highlighting
-    RootView.swift          Toolbar, panes, status bar
-    DiffView.swift          Diff sheet
-    Samples.swift           Seed content
-  JSONKitTests/     Assertion-based tests (XCTest is unavailable under CLT)
+  JSONKit/          Pure logic: parser/serializer, operations, differ, tokenizer
+  JsonUtilities/    SwiftUI app: model, themes, editors, views
+  JSONKitTests/     Logic tests (run with: swift run JSONKitTests)
+scripts/build-app.sh  Builds and signs the .app bundle
+icons/                App icon sources
 ```
-
-## Develop
-
-```sh
-swift build              # compile everything
-swift run JsonUtilities  # launch the app
-swift run JSONKitTests   # run the logic tests
-```
-
-## Design notes
-
-- We use a **hand-written JSON model** instead of `JSONSerialization`/`Codable`
-  because those lose object key order and rewrite number formatting — unacceptable
-  for a formatter. `JSONValue` preserves key order and exact number lexemes.
-- The editors are `NSTextView` wrapped in `NSViewRepresentable` (`CodeTextView`),
-  giving a line-number gutter (via `NSRulerView`) and live JSON syntax
-  highlighting — neither of which SwiftUI's `TextEditor` can do.

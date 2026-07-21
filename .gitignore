@@ -3,3 +3,6 @@
 *.xcodeproj
 DerivedData/
 .DS_Store
+
+# Built app bundle — the zipped copy (dist/*.zip) is committed for download
+dist/*.app

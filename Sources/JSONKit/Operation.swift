@@ -1,6 +1,6 @@
 import Foundation
 
-/// The utility operations offered by the app, mirroring the design.
+/// The utility operations offered by the app.
 public enum Operation: String, CaseIterable, Identifiable, Sendable {
     case format
     case minify

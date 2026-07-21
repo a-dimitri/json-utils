@@ -15,8 +15,8 @@ public struct DiffLine: Identifiable, Sendable {
 }
 
 public enum Differ {
-    /// Line-by-line diff using a longest-common-subsequence table, mirroring the
-    /// design's algorithm. Returns rows in display order.
+    /// Line-by-line diff using a longest-common-subsequence table.
+    /// Returns rows in display order.
     public static func lineDiff(_ aStr: String, _ bStr: String) -> [DiffLine] {
         let a = aStr.components(separatedBy: "\n")
         let b = bStr.components(separatedBy: "\n")
