@@ -16,8 +16,31 @@ struct RootView: View {
         }
         .background(t.bg)
         .foregroundStyle(t.text)
-        .sheet(isPresented: $model.showDiff) {
-            DiffView(rows: model.diffLines, theme: t)
+        .overlay {
+            if model.showDiff {
+                diffOverlay(t)
+            }
+        }
+    }
+
+    // MARK: - Diff overlay
+
+    /// A custom modal overlay (instead of `.sheet`) so clicking the dimmed
+    /// backdrop dismisses it, matching the design. Escape and the ✕ also close.
+    private func diffOverlay(_ t: Theme) -> some View {
+        ZStack {
+            Color.black.opacity(0.5)
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture { model.showDiff = false }
+
+            DiffView(rows: model.diffLines, theme: t) { model.showDiff = false }
+                .shadow(color: .black.opacity(0.5), radius: 30, y: 12)
+
+            // Reliable Escape-to-close (an overlay doesn't get the sheet's default).
+            Button("", action: { model.showDiff = false })
+                .keyboardShortcut(.cancelAction)
+                .hidden()
         }
     }
 
@@ -27,12 +50,17 @@ struct RootView: View {
         HStack(spacing: 12) {
             HStack(spacing: 2) {
                 ForEach(JSONKit.Operation.allCases) { op in
-                    Button(op.label) { model.op = op }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 12, weight: model.op == op ? .semibold : .medium))
-                        .foregroundStyle(model.op == op ? t.text : t.muted)
-                        .padding(.vertical, 6).padding(.horizontal, 11)
-                        .background(model.op == op ? t.segActive : .clear, in: RoundedRectangle(cornerRadius: 6))
+                    let selected = model.op == op
+                    Button(action: { model.op = op }) {
+                        Text(op.label)
+                            .font(.system(size: 12, weight: selected ? .semibold : .medium))
+                            .foregroundStyle(selected ? t.text : t.muted)
+                            .padding(.vertical, 6).padding(.horizontal, 11)
+                            .background(selected ? t.segActive : .clear, in: RoundedRectangle(cornerRadius: 6))
+                            // Make the whole padded pill clickable, not just the text glyph.
+                            .contentShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(3)
@@ -144,12 +172,15 @@ struct RootView: View {
     }
 
     private func ghostButton(_ title: String, _ t: Theme, action: @escaping () -> Void) -> some View {
-        Button(title, action: action)
-            .buttonStyle(.plain)
-            .font(.system(size: 10.5, weight: .medium))
-            .foregroundStyle(t.muted)
-            .padding(.vertical, 3).padding(.horizontal, 9)
-            .overlay(RoundedRectangle(cornerRadius: 6).stroke(t.border))
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 10.5, weight: .medium))
+                .foregroundStyle(t.muted)
+                .padding(.vertical, 3).padding(.horizontal, 9)
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(t.border))
+                .contentShape(RoundedRectangle(cornerRadius: 6))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Status bar

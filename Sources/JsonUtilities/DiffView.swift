@@ -1,12 +1,12 @@
 import SwiftUI
 import JSONKit
 
-/// Side-by-side line diff shown in a sheet, mirroring the design's diff modal.
+/// Side-by-side line diff shown as a modal overlay, mirroring the design's diff modal.
 @MainActor
 struct DiffView: View {
     let rows: [DiffLine]
     let theme: Theme
-    @Environment(\.dismiss) private var dismiss
+    let onClose: () -> Void
 
     private var additions: Int { rows.filter { $0.type == .add }.count }
     private var deletions: Int { rows.filter { $0.type == .del }.count }
@@ -39,8 +39,11 @@ struct DiffView: View {
             Text("+\(additions)  −\(deletions)")
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
                 .foregroundStyle(theme.muted)
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark").font(.system(size: 11))
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11))
+                    .frame(width: 26, height: 26)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .foregroundStyle(theme.muted)
