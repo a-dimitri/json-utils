@@ -31,8 +31,11 @@ struct RootView: View {
         ZStack {
             Color.black.opacity(0.5)
                 .ignoresSafeArea()
-                .contentShape(Rectangle())
-                .onTapGesture { model.showDiff = false }
+
+            // Handles both click-to-dismiss and forcing the arrow cursor over
+            // the dimmed area (SwiftUI can't reset the pointer pre-macOS 15).
+            ArrowCursorBackdrop { model.showDiff = false }
+                .ignoresSafeArea()
 
             DiffView(rows: model.diffLines, theme: t) { model.showDiff = false }
                 .shadow(color: .black.opacity(0.5), radius: 30, y: 12)
