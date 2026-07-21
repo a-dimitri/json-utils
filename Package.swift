@@ -21,8 +21,7 @@ let package = Package(
             name: "JSONKitTests",
             dependencies: ["JSONKit"]
         ),
-    ],
-    // Swift 6 language mode (the default under tools-version 6.0): full strict
-    // concurrency checking.
-    swiftLanguageModes: [.v6]
+    ]
+    // Swift 6 language mode (full strict concurrency) is the default at
+    // swift-tools-version:6.0 — no explicit setting needed.
 )
