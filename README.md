@@ -11,7 +11,8 @@ A lightweight, native macOS app for everyday JSON chores.
 
 ## Install
 
-1. Download **[`dist/JSON-Utilities-macos.zip`](dist/JSON-Utilities-macos.zip)** and unzip it.
+1. Download the latest **[JSON-Utilities-macos.zip](https://github.com/a-dimitri/json-utils/releases/latest/download/JSON-Utilities-macos.zip)**
+   from the [Releases page](https://github.com/a-dimitri/json-utils/releases/latest) and unzip it.
 2. Move **JSON Utilities.app** to `/Applications`.
 3. The app is ad-hoc signed (not notarized), so on first launch macOS Gatekeeper
    will warn about an unidentified developer. Either **right-click the app → Open**
