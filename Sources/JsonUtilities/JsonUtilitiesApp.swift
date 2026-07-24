@@ -17,6 +17,7 @@ struct JsonUtilitiesApp: App {
         .commands {
             // Keyboard-driven, snappy operation switching.
             CommandGroup(replacing: .newItem) {}
+            FindCommands()
             CommandMenu("Operation") {
                 Button("Run") { model.run() }
                     .keyboardShortcut(.return, modifiers: .command)

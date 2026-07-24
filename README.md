@@ -8,6 +8,7 @@ A lightweight, native macOS app for everyday JSON chores.
 - **Diff** — line-by-line comparison of two payloads
 - Four colour themes, line-numbered editors, live syntax highlighting, and a
   validity indicator.
+- **Find** (⌘F) in any pane, and **Find & Replace** (⌥⌘F) in editable panes.
 
 ## Install
 
