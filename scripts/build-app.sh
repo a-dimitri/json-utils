@@ -14,7 +14,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 EXECUTABLE="JsonUtilities"
 APP_NAME="JSON Utilities"
 BUNDLE_ID="io.github.a-dimitri.JsonUtilities"
-VERSION="1.0.0"
+VERSION="1.0.1"
 
 DIST="$ROOT/dist"
 APP="$DIST/$APP_NAME.app"
