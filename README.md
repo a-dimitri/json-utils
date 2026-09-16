@@ -9,6 +9,7 @@ A lightweight, native macOS app for everyday JSON chores.
 - Four colour themes, line-numbered editors, live syntax highlighting, and a
   validity indicator.
 - **Find** (⌘F) in any pane, and **Find & Replace** (⌥⌘F) in editable panes.
+- Drag the divider between the panes to resize the split.
 
 ## Install
 

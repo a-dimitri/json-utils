@@ -5,6 +5,10 @@ import JSONKit
 struct RootView: View {
     @EnvironmentObject var model: AppModel
 
+    // Left-pane width captured at the start of a divider drag, so the cumulative
+    // drag translation is applied to a fixed origin rather than compounding.
+    @State private var dragStartLeftWidth: CGFloat? = nil
+
     var body: some View {
         let t = model.theme
         VStack(spacing: 0) {
@@ -71,22 +75,70 @@ struct RootView: View {
 
     // MARK: - Editor panes
 
+    /// Minimum width each pane may shrink to when dragging the divider.
+    private let minPaneWidth: CGFloat = 220
+
     private func panes(_ t: Theme) -> some View {
-        HStack(spacing: 0) {
-            pane(t, header: model.op.isDiff ? "Input A" : "Input", trailing: clearButton(t)) {
-                editor(text: $model.input, t: t)
-            }
-            Divider().overlay(t.border)
-            pane(t, header: model.op.isDiff ? "Input B" : "Output", trailing: rightHeaderButton(t)) {
-                if model.op.isDiff {
-                    editor(text: $model.inputRight, t: t)
-                } else if let error = model.errorMessage {
-                    errorBox(error, t)
-                } else {
-                    outputView(t)
+        GeometryReader { geo in
+            let total = geo.size.width
+            let leftWidth = clampedLeftWidth(total: total)
+            HStack(spacing: 0) {
+                pane(t, header: model.op.isDiff ? "Input A" : "Input", trailing: clearButton(t)) {
+                    editor(text: $model.input, t: t)
                 }
+                .frame(width: leftWidth)
+
+                splitHandle(t, total: total)
+
+                pane(t, header: model.op.isDiff ? "Input B" : "Output", trailing: rightHeaderButton(t)) {
+                    if model.op.isDiff {
+                        editor(text: $model.inputRight, t: t)
+                    } else if let error = model.errorMessage {
+                        errorBox(error, t)
+                    } else {
+                        outputView(t)
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
         }
+    }
+
+    /// Left width from the stored fraction, kept within [min, total - min].
+    private func clampedLeftWidth(total: CGFloat) -> CGFloat {
+        guard total > 0 else { return 0 }
+        let ideal = CGFloat(model.splitFraction) * total
+        let upper = max(minPaneWidth, total - minPaneWidth)
+        return min(max(ideal, minPaneWidth), upper)
+    }
+
+    /// A 1px divider with a wider, draggable hit area and a resize cursor.
+    private func splitHandle(_ t: Theme, total: CGFloat) -> some View {
+        Rectangle()
+            .fill(t.border)
+            .frame(width: 1)
+            .frame(maxHeight: .infinity)
+            .overlay {
+                // Invisible wide strip so the thin line is easy to grab.
+                Color.clear
+                    .frame(width: 11)
+                    .contentShape(Rectangle())
+                    .onHover { inside in
+                        if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+                    }
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                guard total > 0 else { return }
+                                let start = dragStartLeftWidth ?? clampedLeftWidth(total: total)
+                                if dragStartLeftWidth == nil { dragStartLeftWidth = start }
+                                let upper = max(minPaneWidth, total - minPaneWidth)
+                                let clamped = min(max(start + value.translation.width, minPaneWidth), upper)
+                                model.splitFraction = Double(clamped / total)
+                            }
+                            .onEnded { _ in dragStartLeftWidth = nil }
+                    )
+            }
     }
 
     private func pane<Header: View, Content: View>(
