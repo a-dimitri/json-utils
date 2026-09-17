@@ -75,11 +75,11 @@ struct RootView: View {
     private let minPaneWidth: CGFloat = 220
     /// Width of the draggable divider column (its own hit area, between panes).
     private let handleWidth: CGFloat = 10
-    private let panesSpace = "panesSpace"
 
     private func panes(_ t: Theme) -> some View {
         GeometryReader { geo in
             let total = geo.size.width
+            let usable = total - handleWidth
             let leftWidth = clampedLeftWidth(total: total)
             HStack(spacing: 0) {
                 pane(t, header: model.op.isDiff ? "Input A" : "Input", trailing: clearButton(t)) {
@@ -87,7 +87,7 @@ struct RootView: View {
                 }
                 .frame(width: leftWidth)
 
-                splitHandle(t, total: total)
+                splitHandle(t, usable: usable)
 
                 pane(t, header: model.op.isDiff ? "Input B" : "Output", trailing: rightHeaderButton(t)) {
                     if model.op.isDiff {
@@ -100,7 +100,6 @@ struct RootView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .coordinateSpace(name: panesSpace)
         }
     }
 
@@ -113,28 +112,21 @@ struct RootView: View {
         return min(max(ideal, minPaneWidth), upper)
     }
 
-    /// A divider column with its own hit area (so it never overlaps the text
-    /// views) and a hairline drawn down the middle. Dragging reads the cursor's
-    /// absolute position in a fixed coordinate space, so the reference frame
-    /// doesn't move under the gesture — no shake, no lag.
-    private func splitHandle(_ t: Theme, total: CGFloat) -> some View {
+    /// A divider column with a hairline drawn down the middle. Both the drag and
+    /// the resize cursor are handled by the AppKit view (see NativeSplitHandle).
+    private func splitHandle(_ t: Theme, usable: CGFloat) -> some View {
         Rectangle()
             .fill(Color.clear)
             .frame(width: handleWidth)
             .frame(maxHeight: .infinity)
             .overlay(Rectangle().fill(t.border).frame(width: 1))
-            .overlay(ResizeCursorView())
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0, coordinateSpace: .named(panesSpace))
-                    .onChanged { value in
-                        guard total > 0 else { return }
-                        let usable = total - handleWidth
-                        let upper = max(minPaneWidth, usable - minPaneWidth)
-                        // Desired left width = cursor x minus half the handle.
-                        let left = min(max(value.location.x - handleWidth / 2, minPaneWidth), upper)
-                        model.splitFraction = Double(left / usable)
-                    }
+            .overlay(
+                NativeSplitHandle(
+                    fraction: model.splitFraction,
+                    usableWidth: usable,
+                    minPaneWidth: minPaneWidth,
+                    setFraction: { model.splitFraction = $0 }
+                )
             )
     }
 
