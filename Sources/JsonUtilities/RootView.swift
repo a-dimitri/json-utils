@@ -123,10 +123,8 @@ struct RootView: View {
             .frame(width: handleWidth)
             .frame(maxHeight: .infinity)
             .overlay(Rectangle().fill(t.border).frame(width: 1))
+            .overlay(ResizeCursorView())
             .contentShape(Rectangle())
-            .onHover { inside in
-                if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
-            }
             .gesture(
                 DragGesture(minimumDistance: 0, coordinateSpace: .named(panesSpace))
                     .onChanged { value in
