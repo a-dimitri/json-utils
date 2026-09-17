@@ -71,22 +71,63 @@ struct RootView: View {
 
     // MARK: - Editor panes
 
+    /// Minimum width each pane may shrink to when dragging the divider.
+    private let minPaneWidth: CGFloat = 220
+    /// Width of the draggable divider column (its own hit area, between panes).
+    private let handleWidth: CGFloat = 10
+
     private func panes(_ t: Theme) -> some View {
-        HStack(spacing: 0) {
-            pane(t, header: model.op.isDiff ? "Input A" : "Input", trailing: clearButton(t)) {
-                editor(text: $model.input, t: t)
-            }
-            Divider().overlay(t.border)
-            pane(t, header: model.op.isDiff ? "Input B" : "Output", trailing: rightHeaderButton(t)) {
-                if model.op.isDiff {
-                    editor(text: $model.inputRight, t: t)
-                } else if let error = model.errorMessage {
-                    errorBox(error, t)
-                } else {
-                    outputView(t)
+        GeometryReader { geo in
+            let total = geo.size.width
+            let usable = total - handleWidth
+            let leftWidth = clampedLeftWidth(total: total)
+            HStack(spacing: 0) {
+                pane(t, header: model.op.isDiff ? "Input A" : "Input", trailing: clearButton(t)) {
+                    editor(text: $model.input, t: t)
                 }
+                .frame(width: leftWidth)
+
+                splitHandle(t, usable: usable)
+
+                pane(t, header: model.op.isDiff ? "Input B" : "Output", trailing: rightHeaderButton(t)) {
+                    if model.op.isDiff {
+                        editor(text: $model.inputRight, t: t)
+                    } else if let error = model.errorMessage {
+                        errorBox(error, t)
+                    } else {
+                        outputView(t)
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
         }
+    }
+
+    /// Left width from the stored fraction, kept within [min, total - min].
+    private func clampedLeftWidth(total: CGFloat) -> CGFloat {
+        guard total > 0 else { return 0 }
+        let usable = total - handleWidth
+        let ideal = CGFloat(model.splitFraction) * usable
+        let upper = max(minPaneWidth, usable - minPaneWidth)
+        return min(max(ideal, minPaneWidth), upper)
+    }
+
+    /// A divider column with a hairline drawn down the middle. Both the drag and
+    /// the resize cursor are handled by the AppKit view (see NativeSplitHandle).
+    private func splitHandle(_ t: Theme, usable: CGFloat) -> some View {
+        Rectangle()
+            .fill(Color.clear)
+            .frame(width: handleWidth)
+            .frame(maxHeight: .infinity)
+            .overlay(Rectangle().fill(t.border).frame(width: 1))
+            .overlay(
+                NativeSplitHandle(
+                    fraction: model.splitFraction,
+                    usableWidth: usable,
+                    minPaneWidth: minPaneWidth,
+                    setFraction: { model.splitFraction = $0 }
+                )
+            )
     }
 
     private func pane<Header: View, Content: View>(

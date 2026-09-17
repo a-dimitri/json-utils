@@ -17,6 +17,10 @@ final class AppModel: ObservableObject {
     @Published var showDiff = false
     @Published private(set) var diffLines: [DiffLine] = []
 
+    /// Left pane's share of the split, as a fraction of total width. Clamped so
+    /// neither pane collapses below a usable minimum (see RootView).
+    @Published var splitFraction: Double = 0.5
+
     init() { recompute() }
 
     var theme: Theme { Theme.palette(themeID) }
