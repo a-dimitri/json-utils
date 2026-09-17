@@ -5,10 +5,6 @@ import JSONKit
 struct RootView: View {
     @EnvironmentObject var model: AppModel
 
-    // Left-pane width captured at the start of a divider drag, so the cumulative
-    // drag translation is applied to a fixed origin rather than compounding.
-    @State private var dragStartLeftWidth: CGFloat? = nil
-
     var body: some View {
         let t = model.theme
         VStack(spacing: 0) {
@@ -77,6 +73,9 @@ struct RootView: View {
 
     /// Minimum width each pane may shrink to when dragging the divider.
     private let minPaneWidth: CGFloat = 220
+    /// Width of the draggable divider column (its own hit area, between panes).
+    private let handleWidth: CGFloat = 10
+    private let panesSpace = "panesSpace"
 
     private func panes(_ t: Theme) -> some View {
         GeometryReader { geo in
@@ -101,44 +100,44 @@ struct RootView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
+            .coordinateSpace(name: panesSpace)
         }
     }
 
     /// Left width from the stored fraction, kept within [min, total - min].
     private func clampedLeftWidth(total: CGFloat) -> CGFloat {
         guard total > 0 else { return 0 }
-        let ideal = CGFloat(model.splitFraction) * total
-        let upper = max(minPaneWidth, total - minPaneWidth)
+        let usable = total - handleWidth
+        let ideal = CGFloat(model.splitFraction) * usable
+        let upper = max(minPaneWidth, usable - minPaneWidth)
         return min(max(ideal, minPaneWidth), upper)
     }
 
-    /// A 1px divider with a wider, draggable hit area and a resize cursor.
+    /// A divider column with its own hit area (so it never overlaps the text
+    /// views) and a hairline drawn down the middle. Dragging reads the cursor's
+    /// absolute position in a fixed coordinate space, so the reference frame
+    /// doesn't move under the gesture — no shake, no lag.
     private func splitHandle(_ t: Theme, total: CGFloat) -> some View {
         Rectangle()
-            .fill(t.border)
-            .frame(width: 1)
+            .fill(Color.clear)
+            .frame(width: handleWidth)
             .frame(maxHeight: .infinity)
-            .overlay {
-                // Invisible wide strip so the thin line is easy to grab.
-                Color.clear
-                    .frame(width: 11)
-                    .contentShape(Rectangle())
-                    .onHover { inside in
-                        if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
-                    }
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                guard total > 0 else { return }
-                                let start = dragStartLeftWidth ?? clampedLeftWidth(total: total)
-                                if dragStartLeftWidth == nil { dragStartLeftWidth = start }
-                                let upper = max(minPaneWidth, total - minPaneWidth)
-                                let clamped = min(max(start + value.translation.width, minPaneWidth), upper)
-                                model.splitFraction = Double(clamped / total)
-                            }
-                            .onEnded { _ in dragStartLeftWidth = nil }
-                    )
+            .overlay(Rectangle().fill(t.border).frame(width: 1))
+            .contentShape(Rectangle())
+            .onHover { inside in
+                if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
             }
+            .gesture(
+                DragGesture(minimumDistance: 0, coordinateSpace: .named(panesSpace))
+                    .onChanged { value in
+                        guard total > 0 else { return }
+                        let usable = total - handleWidth
+                        let upper = max(minPaneWidth, usable - minPaneWidth)
+                        // Desired left width = cursor x minus half the handle.
+                        let left = min(max(value.location.x - handleWidth / 2, minPaneWidth), upper)
+                        model.splitFraction = Double(left / usable)
+                    }
+            )
     }
 
     private func pane<Header: View, Content: View>(
